@@ -2,10 +2,11 @@
 
 This file keeps the **shortest useful summary** of the most important findings so far from the parallel-bottleneck trace work.
 
-For the current two-trace corpus, **phase 2 is complete**. The detailed phase-2 outputs are:
+For the current two-trace corpus, **phase 3 is now complete**. The detailed outputs are:
 
 - [phase2-equivalent-scope-comparison.md](./phase2-equivalent-scope-comparison.md)
 - [phase2-preindexed-focus-details.md](./phase2-preindexed-focus-details.md)
+- [phase3-evaluation-accounting.md](./phase3-evaluation-accounting.md)
 
 ## 1. The biggest comparable MT slowdown is usually in `EvaluatePass3`
 
@@ -35,13 +36,33 @@ So the current actionable emphasis should stay on `EvaluateCondition` first, wit
 - perf details: [phase2-preindexed-focus-details.md](./phase2-preindexed-focus-details.md#requestthreadproc-yes-there-is-more-detailed-perf-data-but-it-is-still-window-scoped)
 - instrumentation follow-up: [PR #13978](https://github.com/dotnet/msbuild/pull/13978)
 
-## 4. The next explicit check is whether evaluation is now explained well enough end-to-end
+## 4. Evaluation is now explained well enough for a durable summary
 
-The next planned phase is no longer just “follow the hottest events.” It should now answer a stricter question:
+Phase 3 answers the stricter question from the earlier summary: for the current two-trace corpus, the evaluation story is now **good enough** without blocking on more instrumentation first.
 
-- do we understand **all material evaluation-phase differences** between MT and non-MT well enough to summarize where the time goes;
-- or are there still attribution holes large enough to require a small amount of new MSBuild instrumentation first?
+The strongest durable conclusion is:
 
-If the current traces are sufficient, the output should be a short evaluation-phase accounting summary. If they are not, the output should be a **limited**, evidence-driven list of instrumentation improvements rather than a broad wishlist.
+1. the biggest repeated same-project MT expansion is usually **`EvaluatePass3`**;
+2. **`EvaluateCondition`** is the clearest systemic inner-phase regression;
+3. **`ExpandGlob`** is real but looks more like a secondary/project-sensitive amplifier;
+4. **`RequestThreadProc`** is useful supporting evidence for coordination/overlap, but not the main attributable root-cause finding.
 
-Matching binlogs also exist for the same builds, but that cross-artifact work is intentionally deferred until **after** this evaluation-accounting pass.
+The remaining attribution gaps around `RequestThreadProc` and `ApplyLazyItemOperations` are refinement gaps, not blockers for the current summary.
+
+### Confidence and perf-data coverage by family
+
+| Family | Perf data quality | Current read |
+| --- | --- | --- |
+| `EvaluatePass0`-`EvaluatePass5` | **solid** | Cross-project same-project/same-pass timings; `EvaluatePass3` is the biggest repeated MT regression (`39.834 ms -> 106.241 ms`, `+66.406 ms`) |
+| `EvaluateCondition` | **solid** | Thread-scoped paired spans on the top 5 MT outliers; same condition set, much slower in MT (`87.541 ms -> 1,515.490 ms` total across sample) |
+| `ExpandGlob` | **solid but mixed** | Thread-scoped paired spans and per-glob comparisons; real but project-sensitive amplifier, not the universal driver |
+| `RequestThreadProc` | **real but weaker attribution** | Strong window-scoped perf signal (`18 / 1,368.099 ms` -> `79 / 19,079.643 ms`), but no payload, so not cleanly project/request-attributed |
+| `ApplyLazyItemOperations` | **partial** | Clearly hot in heavy windows, but attribution is weaker; current interpretation relies on enclosed totals plus sampled item types rather than clean per-project paired spans |
+| `LoadDocument` / `Parse` | **solid enough to demote** | Not primary drivers in the heavy slices we compared |
+| SDK resolver work | **solid enough to demote for phase 3** | Useful earlier lead, but not the dominant recurring explanation for the evaluation slowdown |
+
+**More detail:** [phase3-evaluation-accounting.md](./phase3-evaluation-accounting.md)
+
+## 5. Matching binlogs remain optional follow-up, not a phase-3 prerequisite
+
+Matching binlogs still exist for the same builds, but they remain a **follow-up option**, not something phase 3 needed in order to reach a useful conclusion.
