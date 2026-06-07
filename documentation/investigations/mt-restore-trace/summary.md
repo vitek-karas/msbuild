@@ -7,6 +7,7 @@ For the current two-trace corpus, **phase 3 is now complete**. The detailed outp
 - [phase2-equivalent-scope-comparison.md](./phase2-equivalent-scope-comparison.md)
 - [phase2-preindexed-focus-details.md](./phase2-preindexed-focus-details.md)
 - [phase3-evaluation-accounting.md](./phase3-evaluation-accounting.md)
+- [phase4-binlog-correlation.md](./phase4-binlog-correlation.md)
 
 ## 1. The biggest comparable MT slowdown is usually in `EvaluatePass3`
 
@@ -66,6 +67,16 @@ The remaining attribution gaps around `RequestThreadProc` and `ApplyLazyItemOper
 ## 5. Matching binlogs remain optional follow-up, not a phase-3 prerequisite
 
 Matching binlogs still exist for the same builds, but they remain a **follow-up option**, not something phase 3 needed in order to reach a useful conclusion.
+
+That follow-up is now partly done: the new binlog pass strengthens the current picture in an important way.
+
+- The hot projects have the **same restore-time evaluation shape** in both builds.
+- The sampled hot evaluation for `OrchardCore.Resources.csproj` also matches on key properties and sampled item counts.
+- But the same project still has **multiple restore-time evaluations, and every one is slower in MT**.
+
+So the combined trace+binlog result pushes the hypothesis further away from “MT evaluated different content” and further toward “the same evaluation workload is running more slowly under MT because of evaluator-side and/or coordination effects.”
+
+**More detail:** [phase4-binlog-correlation.md](./phase4-binlog-correlation.md)
 
 ## 6. Evaluation profiler is a strong semantic follow-up
 

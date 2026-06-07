@@ -47,7 +47,10 @@ This investigation will run in phases.
   - `phase2-preindexed-focus-details.md`
 - Phase 3: complete for the current two-trace corpus; results are recorded in:
   - `phase3-evaluation-accounting.md`
-- Phase 4 remains deferred follow-on work.
+- Phase 4: started
+  - initial binlog correlation results are recorded in:
+    - `phase4-binlog-correlation.md`
+  - deeper follow-up remains open, especially evaluation-profiler work and any targeted instrumentation that may still be needed afterward.
 
 ### Phase 1 - Trace reconnaissance
 
