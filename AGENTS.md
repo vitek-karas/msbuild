@@ -25,6 +25,24 @@ Instructions for GitHub Copilot and other AI coding agents working with the MSBu
 * Always use the latest C# features, currently C# 14, especially collection expressions (`[]` over `new Type[]`).
 * Match the style of surrounding code when making edits, but modernize aggressively for substantial changes.
 
+## Nettrace MCP Review Workflow
+
+* In this branch, after every turn that uses the `nettrace` MCP server, review how the MCP usage went before sending the final response.
+* Answer these questions:
+  * Was there a misunderstanding of the MCP by the agent? Would extra instructions help, and if so what instructions?
+  * Did it take too many MCP calls to reach the answer? If so, would a new generally useful MCP capability or tool help, and what should it do?
+  * Is there any other improvement that would help with the MCP?
+* If any answer yields a concrete improvement suggestion, append it to `./nettrace-mcp-improvements.md`.
+* When reporting a turn that produced at least one new suggestion, include this exact marker in the final response for each suggestion: `>>>> NETTRACE MCP Improvement: <details> <<<<<`
+
+## ETL Trace Interpretation For MT Investigation
+
+* For the `C:\repro\perf\msbuild-mt\restore-warm` vs `C:\repro\perf\msbuild-mt\restore-warm-mt` investigation, do **not** compare total trace duration or total event counts directly between the two traces.
+* The non-MT trace is from only **one worker node process** in a **multi-proc** build. In multi-proc builds, MSBuild runs one in-proc node in the entry process and multiple out-of-proc worker-node processes, one node per worker process.
+* The MT trace is from the **single process** that runs the whole build in **multi-threaded** mode. In the current implementation, enabling multithreaded mode implies that all worker nodes are in-proc.
+* Therefore, the non-MT trace is expected to be smaller overall. Compare the traces only by aligning on the **same project**, **same phase** (especially evaluation), and comparable per-project/per-node work, not by whole-trace totals.
+* Treat whole-trace count or duration differences as topology artifacts unless they are first normalized to an equivalent scope.
+
 ## Code Review Instructions
 
 Official builds treat all warnings as errors, so do not introduce new warnings.
