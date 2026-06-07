@@ -66,3 +66,20 @@ The remaining attribution gaps around `RequestThreadProc` and `ApplyLazyItemOper
 ## 5. Matching binlogs remain optional follow-up, not a phase-3 prerequisite
 
 Matching binlogs still exist for the same builds, but they remain a **follow-up option**, not something phase 3 needed in order to reach a useful conclusion.
+
+## 6. Evaluation profiler is a strong semantic follow-up
+
+Another useful next artifact is the built-in evaluation profiler (`/profileevaluation`).
+
+At a high level, it complements the ETL work well:
+
+- ETL is better for **timeline shape**, **same-project MT vs non-MT wall-clock comparison**, and **coordination/overlap signals**.
+- `/profileevaluation` is better for **semantic attribution inside evaluation**, because it reports inclusive/exclusive time by **pass**, **file**, **line**, and **expression**.
+
+That makes it a good candidate for follow-up work on the current weak spots, especially:
+
+- determining which concrete lazy-item or item-evaluation expressions dominate the hot `EvaluatePass3` / lazy-item region;
+- checking whether MT and non-MT are spending time in the **same** imported expressions and rules, just with very different wall-clock cost;
+- refining the current partial understanding around `ApplyLazyItemOperations`.
+
+It should be treated as a **complement**, not a replacement, because it will not explain thread-level contention or request coordination the way ETL can.

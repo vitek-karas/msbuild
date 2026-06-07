@@ -45,7 +45,9 @@ This investigation will run in phases.
 - Phase 2: complete for the current two-trace corpus; results are recorded in:
   - `phase2-equivalent-scope-comparison.md`
   - `phase2-preindexed-focus-details.md`
-- Later phases remain deferred follow-on work.
+- Phase 3: complete for the current two-trace corpus; results are recorded in:
+  - `phase3-evaluation-accounting.md`
+- Phase 4 remains deferred follow-on work.
 
 ### Phase 1 - Trace reconnaissance
 
@@ -194,11 +196,41 @@ Outputs from Phase 3:
 
 Note for the next phase after phase 3: matching **binlogs** are available for the same builds as these traces.
 
-If phase 3 still leaves attribution holes, or if the evaluation summary would benefit from richer build context, use those binlogs together with the traces to investigate whether cross-artifact correlation can improve:
+If phase 3 still leaves attribution holes, or if the evaluation summary would benefit from richer build context, use additional artifacts together with the traces to investigate whether cross-artifact correlation can improve:
 
 1. project/build request attribution
 2. target/task/import context around hot trace windows
 3. interpretation of evaluation-side coordination and scheduling effects
+4. semantic attribution inside evaluation itself using the built-in evaluation profiler (`/profileevaluation`)
+
+### Phase 4 candidate: evaluation-profiler follow-up
+
+The built-in evaluation profiler is a promising next artifact for this investigation because it reports evaluation cost by:
+
+- pass
+- file
+- line
+- expression
+- inclusive / exclusive time
+
+At a high level, it could improve this investigation by answering a different class of question than ETL:
+
+1. **what expression/import/item definition is expensive?**  
+   The profiler can attribute evaluation time to specific imported files and expressions, which may help explain which concrete project logic dominates the slow `EvaluatePass3` / lazy-item regions.
+2. **is the MT slowdown concentrated in the same semantic evaluator work?**  
+   If the same project is profiled in MT and non-MT modes, the profiler output could show whether the wall-clock expansion is concentrated in the same expressions, imports, and lazy-item rules on both sides.
+3. **can it sharpen the current weak spots?**  
+   It may help refine the current partial understanding around `ApplyLazyItemOperations` and lazy/default-item work by showing which item expressions dominate, even when ETL payloads are too weak for clean project attribution.
+
+Important limit: the profiler is **not** a replacement for ETL.
+
+- It is strong for **semantic attribution inside one project evaluation**.
+- It is weak for **threading, overlap, contention, and request coordination**.
+
+So the best use is as a complement to the ETL results:
+
+- ETL answers **where the wall-clock regression lives** and whether coordination/overlap exists.
+- `/profileevaluation` can answer **which project expressions/imports/lazy-item rules are responsible inside that slow evaluation slice**.
 
 ## Phase 1 execution checklist
 
